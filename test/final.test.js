@@ -4,109 +4,137 @@ const { Builder, By, until, Key } = require('selenium-webdriver');
 const chai = require('chai');
 const expect = chai.expect;
 const chrome = require('selenium-webdriver/chrome');
+const { Options } = require('selenium-webdriver/chromium');
 
-describe('QA Fast Food test', function() {
+
+describe('Final test', function() {
     let driver;
 
     before(async function() {
-        let service = new chrome.ServiceBuilder('N:\\TEST\\chromedriver\\chromedriver.exe').build()
+        let service = new chrome.ServiceBuilder('C:\\Users\\Publik lap002\\vezbanje\\Cas22\\chromedriver\\chromedriver.exe').build()
         chrome.setDefaultService(service);
 
         driver = await new Builder().forBrowser('chrome').build();
     });
-
+    
     after(function() {
         return driver.quit();
     });
 
-    it('Opens http://test.qa.rs/ homepage', async function() {
+    it('User registration', async function() {
         await driver.get('http://test.qa.rs/');
 
         expect(await driver.getCurrentUrl()).to.eq('http://test.qa.rs/');
-    });
+        
+        const registrationButton = await driver.findElement(By.linkText('Register'));
+        await registrationButton.click();
 
-    it('Open registration page', async function() {
-        const register = await driver.findElement(By.linkText('register'));
-        await register.click();
+        expect (await driver.getCurrentUrl()).to.eq('http://test.qa.rs/register');
 
-        expect(await driver.getCurrentUrl()).to.eq('http://test.qa.rs/register');
-    });
+        const fillFirstName = "Natalia";
+        const fillLastName = "Raskolnikova";
+        const fillEmail = "natalia@test.org";
+        const fillUserName = "nataliaaa";
+        const fillPassword = "nataliaaa";
+        const fillConfirmPassword = "nataliaaa";
 
-    it('Successfully performs registration', async function() {
-        const FirstName = await driver.findElement(By.name('firstname'));
-        FirstName.sendKeys('Nemanja');
+        const firstName = await driver.findElement(By.name('firstname'));
+        firstName.sendKeys (fillFirstName);
 
-        const LastName = await driver.findElement(By.name('lastname'));
-        LastName.sendKeys('Pilipovic');
+        const lastName = await driver.findElement(By.name('lastname'));
+        lastName.sendKeys(fillLastName);
 
         const email = await driver.findElement(By.name('email'));
-        email.sendKeys('pili@microsoft.com');
+        email.sendKeys(fillEmail);
 
-        const username = await driver.findElement(By.name('username'));
-        username.sendKeys('flyingsamir');
+        const userName = await driver.findElement(By.name('username'));
+        userName.sendKeys(fillUserName);
 
         const password = await driver.findElement(By.name('password'));
-        password.sendKeys('samir123');
+        password.sendKeys(fillPassword);
 
-        const passwordagain = await driver.findElement(By.name('passwordAgain'));
-        passwordagain.sendKeys('samir123');
+        const confirmPassword = await driver.findElement(By.name('passwordAgain'));
+        confirmPassword.sendKeys(fillConfirmPassword);
 
-        const registracija = await driver.findElement(By.name('register'));
-        await registracija.click();
-
-        expect(await driver.findElement(By.className('alert alert-success')).getText()).to.contain('Success!');
+        const registerButton = await driver.findElement(By.name('register'));
+        await registerButton.click();
+        
+        expect(await driver.findElement(By.className('alert alert-success')).getText()).to.contain('Success');
     });
 
-    it('Open Login page', async function() {
-        const login = await driver.findElement(By.linkText('login'))
-        await login.click();
 
-        expect(await driver.getCurrentUrl()).to.eq('http://test.qa.rs/login');
+    it ('User login', async function(){
+        const loginButton = await driver.findElement(By.partialLinkText('Login'));
+        await loginButton.click();
+
+        expect(await driver.findElement(By.css('h2')).getText()).to.contain('Login');
+
+        const userNameLogin = await driver.findElement(By.name('username'));
+        userNameLogin.sendKeys('nataliaaa');
+
+        const passwordLogin = await driver.findElement(By.name('password'));
+        passwordLogin.sendKeys('nataliaaa');
+
+        const loginButtonLogin = await driver.findElement(By.name('login'));
+        await loginButtonLogin.click();
+
+        expect (await driver.findElement(By.css('h2')).getText()).to.contain('Welcome back');
     });
 
-    it('Successfully performs login', async function() {
-        const username1 = await driver.findElement(By.name('username'));
-        username1.sendKeys('flyingsamir');
+    it ('Add items in cart, order, checkout and verify', async function(){
+        const burger = await driver.findElement(By.xpath('//h3[contains(text(), "Burger")]/ancestor::div[2]'));
+        const orderButton = await burger.findElement(By.className('btn btn-success'));
+        await orderButton.click();
 
-        const password1 = await driver.findElement(By.name('password'));
-        password1.sendKeys('samir123');
+        expect (await driver.getCurrentUrl()).to.eq('http://test.qa.rs/order');
 
-        const login1 = await driver.findElement(By.name('login'));
-        await login1.click();
+        const continueShop = await driver.findElement(By.linkText('Continue shopping'));
+        await continueShop.click();
 
-        expect(await driver.findElement(By.css('h2')).getText()).to.contain('Welcome back');
+        expect(await driver.getCurrentUrl()).to.eq('http://test.qa.rs/');
+
+        const doubleBurger = await driver.findElement(By.xpath('//h3[contains(text(), "Double burger")]/ancestor::div[2]'));
+        const orderDoubleBurger = await doubleBurger.findElement(By.className('btn btn-success'));
+        await orderDoubleBurger.click();
+
+        expect (await driver.getCurrentUrl()).to.eq('http://test.qa.rs/order');
+
+        const continueShopAgain = await driver.findElement(By.linkText('Continue shopping'));
+        await continueShopAgain.click();
+
+        const megaBurger = await driver.findElement(By.xpath('//h3[contains(., "Mega burger")]/ancestor::div[2]'));
+        const orderMegaBurger = await megaBurger.findElement(By.className('btn btn-success'));
+        await orderMegaBurger.click();
+
+        expect (await driver.getCurrentUrl()).to.eq('http://test.qa.rs/order');
+
+        const checkoutButton = await driver.findElement(By.className('btn btn-primary'));
+        await checkoutButton.click();
+
+        expect(await driver.findElement(By.css('h2')).getText()).to.contain('Order');
+
+        const orderTable = await driver.findElement(By.css('table'));
+        const priceOne = await orderTable.findElement(By.xpath('//td[contains(., "6.99")][2]'));
+        const priceTwo = await orderTable.findElement(By.xpath('//td[contains(., "9.99")][2]'));
+        const priceThree = await orderTable.findElement(By.xpath('//td[contains(., "13.99")][2]'));
+        const priceTotal = await orderTable.findElement(By.xpath('//tr[contains(., "30")]'));
+
+        const priceBurger = Number((await priceOne.getText()).substring(1));
+        const priceDoubleBurger = Number((await priceTwo.getText()).substring(1));
+        const priceMegaBurger = Number((await priceThree.getText()).substring(1));
+        const priceTotalBurger = Number((await priceTotal.getText()).substring(1));
+    
+
+        const calculatedTotal = priceBurger + priceDoubleBurger + priceMegaBurger;
+
+        expect(calculatedTotal).to.be.eq(priceTotalBurger)
     });
 
-    it('Adds item to cart and checkout', async function() {
-        const ProductName = await driver.findElement(By.xpath('//h3[contains(text(), "Burger")]/ancestor::div[contains(@class, "panel-heading")]'));
-        const quantity = await ProductName.findElement(By.name('quantity'));
-        const options = await quantity.findElements(By.css('side'));
+    it ('Performs logout', async function(){
+        const logout = await driver.findElement(By.partialLinkText('Logout Natalia'));
+        await logout.click();
 
-        await Promise.all(options.map(async function(option) {
-            const text = await option.getText();
-            if (text === '3') {
-                await option.click();
+        expect(await driver.getCurrentUrl()).to.eq('http://test.qa.rs/');
 
-                const selectedValue = await quantity.getAttribute('value');
-                expect(selectedValue).to.contain('3');
-                                              
-                const orderButton = await ProductName.findElement(By.name('Burger'));
-                await orderButton.click();
-
-                const url = await driver.getCurrentUrl();
-                expect(url).to.contain('http://test.qa.rs/order');                
-                        
-                const checkout = await driver.findElement(By.name('checkout'));
-                await checkout.click();
-        
-                expect(await driver.findElement(By.css('h2')).getText()).to.contain('(Order #');
-            });
-        
-            it('Performs logout', async function() {
-                const logout1 = await driver.findElement(By.partialLinkText('logout'));
-                await logout1.click();
-        
-                expect(await driver.findElement(By.linkText('login')).isDisplayed()).to.be.true;
-            });
-        });
-        
+    });
+})
